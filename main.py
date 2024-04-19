@@ -68,27 +68,56 @@ def map_sentiment_to_size(sentiment):
 crypto_news['size'] = crypto_news['sentiment'].apply(map_sentiment_to_size)
 
 # Generate axis map dynamically from column names
-axis_map = {column: column for column in bitcoin_prices.columns}
+bitcoin_prices_axis_map = {column: column for column in bitcoin_prices.columns}
+bitcoin_news_axis_map = {column: column for column in bitcoin_news.columns}
+crypto_news_axis_map = {column: column for column in crypto_news.columns}
 
 desc = Div(text=open(join(dirname(__file__), "description.html")).read(), sizing_mode="stretch_width")
 
-# Generate filters dynamically
-filters = []
+# Generate filters for Bitcoin Prices dataset
+bitcoin_prices_filters = []
 for column in bitcoin_prices.columns:
     if bitcoin_prices[column].dtype in [int, float]:
         filter_widget = Slider(title=column, start=bitcoin_prices[column].min(), end=bitcoin_prices[column].max(), value=bitcoin_prices[column].min(), step=1)
     else:
         filter_widget = TextInput(title=column, value="")
-    filters.append(filter_widget)
+    bitcoin_prices_filters.append(filter_widget)
+
+# Generate filters for Bitcoin News dataset
+bitcoin_news_filters = []
+for column in bitcoin_news.columns:
+    if bitcoin_news[column].dtype in [int, float]:
+        filter_widget = Slider(title=column, start=bitcoin_news[column].min(), end=bitcoin_news[column].max(), value=bitcoin_news[column].min(), step=1)
+    else:
+        filter_widget = TextInput(title=column, value="")
+    bitcoin_news_filters.append(filter_widget)
+
+# Generate filters for Crypto News dataset
+crypto_news_filters = []
+for column in crypto_news.columns:
+    if crypto_news[column].dtype in [int, float]:
+        filter_widget = Slider(title=column, start=crypto_news[column].min(), end=crypto_news[column].max(), value=crypto_news[column].min(), step=1)
+    else:
+        filter_widget = TextInput(title=column, value="")
+    crypto_news_filters.append(filter_widget)
 
 # Generate axis selectors dynamically
-x_axis = Select(title="X Axis", options=list(axis_map.keys()), value=list(axis_map.keys())[0])
-y_axis = Select(title="Y Axis", options=list(axis_map.keys()), value=list(axis_map.keys())[1])
+bitcoin_prices_x_axis = Select(title="X Axis", options=list(bitcoin_prices_axis_map.keys()), value=list(bitcoin_prices_axis_map.keys())[3])
+bitcoin_prices_y_axis = Select(title="Y Axis", options=list(bitcoin_prices_axis_map.keys()), value=list(bitcoin_prices_axis_map.keys())[7])
+
+bitcoin_news_x_axis = Select(title="X Axis", options=list(bitcoin_news_axis_map.keys()), value=list(bitcoin_news_axis_map.keys())[0])
+bitcoin_news_y_axis = Select(title="Y Axis", options=list(bitcoin_news_axis_map.keys()), value=list(bitcoin_news_axis_map.keys())[1])
+
+crypto_news_x_axis = Select(title="X Axis", options=list(crypto_news_axis_map.keys()), value=list(crypto_news_axis_map.keys())[0])
+crypto_news_y_axis = Select(title="Y Axis", options=list(crypto_news_axis_map.keys()), value=list(crypto_news_axis_map.keys())[1])
 
 # Define separate data sources for each dataset
-bitcoin_prices_source = ColumnDataSource(data=dict(x=[], y=[], color=[], title=[], age=[], count=[], alpha=[]))
-bitcoin_news_source = ColumnDataSource(data=dict(x=[], y=[], title=[], age=[], count=[], alpha=[]))
-crypto_news_source = ColumnDataSource(data=dict(x=[], y=[], color=[], title=[], age=[], count=[], alpha=[], size=[]))
+# SNo,Name,Symbol,Date,High,Low,Open,Close,Volume,Marketcap
+bitcoin_prices_source = ColumnDataSource(data=dict(x=[], y=[], color=[], SNo=[], Name=[], Symbol=[], Date=[], High=[], Low=[], Open=[],Close=[], Volume=[], Marketcap=[], count=[], alpha=[]))
+# title,score,id,url,comms_num,created,body,timestamp
+bitcoin_news_source = ColumnDataSource(data=dict(x=[], y=[], title=[], score=[], id=[], url=[], comms_num=[], created=[], body=[], timestamp=[], alpha=[]))
+# date,sentiment,source,subject,text,title,url
+crypto_news_source = ColumnDataSource(data=dict(x=[], y=[], color=[], date=[], sentiment=[], source=[],subject=[], text=[], title=[], alpha=[], size=[]))
 
 tooltips = [
     ("Name", "@Name"),
@@ -137,23 +166,42 @@ def update():
         title=crypto_news["title"],
         age=crypto_news["url"],
         count=crypto_news["date"],
-        alpha=[0.1 * ((i + 1) % 10 + 1) for i in range(len(crypto_news))]  # Invent some logic for alpha values
+        alpha=[0.1 * ((i + 1) % 10 + 1) for i in range(len(crypto_news))],  # Invent some logic for alpha values
+        size=[10 for _ in range(len(crypto_news))]  # Set a default size for now
     )
 
 
 
+
+
 # Define controls
-controls = filters + [x_axis, y_axis]
-for control in controls:
+bitcoin_prices_controls = bitcoin_prices_filters + [bitcoin_prices_x_axis, bitcoin_prices_y_axis]
+for control in bitcoin_prices_controls:
     control.on_change("value", lambda attr, old, new: update())
 
-inputs = bokeh_column(*controls, width=320, height=800)
+bitcoin_news_controls = bitcoin_news_filters + [bitcoin_news_x_axis, bitcoin_news_y_axis]
+for control in bitcoin_news_controls:
+    control.on_change("value", lambda attr, old, new: update())
+
+crypto_news_controls = crypto_news_filters + [crypto_news_x_axis, crypto_news_y_axis]
+# Set different start and end values for the 'size' slider
+if isinstance(crypto_news_controls[0], Slider):  # Check if the control is a Slider
+    crypto_news_controls[0].start = 1
+    crypto_news_controls[0].end = 20
+for control in crypto_news_controls:
+    control.on_change("value", lambda attr, old, new: update())
+
+inputs = bokeh_column(
+    bokeh_column(*bitcoin_prices_controls),
+    bokeh_column(*bitcoin_news_controls),
+    bokeh_column(*crypto_news_controls),
+    width=320, height=800
+)
 
 # Arrange plots and controls in layout
 layout = bokeh_column(
     desc, 
-    row(inputs, sizing_mode="stretch_width"), 
-    row(bitcoin_prices_plot, bitcoin_news_plot, crypto_news_plot, sizing_mode="stretch_width"), 
+    row(inputs, bitcoin_prices_plot, bitcoin_news_plot, crypto_news_plot, sizing_mode="stretch_width"), 
     sizing_mode="stretch_width", 
     height=800
 )
