@@ -6,9 +6,9 @@ from bokeh.models import ColumnDataSource, Div, Select, Slider, TextInput
 from bokeh.plotting import figure
 
 # Read data from files
-bitcoin_prices = pd.read_csv(join(dirname(__file__), "fase1_coin_Bitcoin.csv"))
-bitcoin_news = pd.read_csv(join(dirname(__file__), "fase1_Bitcoin.csv"))
-crypto_news = pd.read_csv(join(dirname(__file__), "fase1_cryptonews.csv"))
+bitcoin_prices = pd.read_csv(join(dirname(__file__), "src/fase1_coin_Bitcoin.csv"))
+bitcoin_news = pd.read_csv(join(dirname(__file__), "src/fase1_Bitcoin.csv"))
+crypto_news = pd.read_csv(join(dirname(__file__), "src/fase1_cryptonews.csv"))
 
 # Fill empty or nan fields
 bitcoin_prices.fillna(0, inplace=True)
