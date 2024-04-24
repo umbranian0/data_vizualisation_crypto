@@ -1,4 +1,5 @@
 from ntpath import join
+from posixpath import dirname
 import pandas as pd
 from bokeh.io import curdoc
 from bokeh.layouts import column as bokeh_column, row
@@ -17,16 +18,13 @@ import time
 
 import os
 
-for dirname, _, filenames in os.walk('src/'):
-    for filename in filenames:
-        print(os.path.join(dirname, filename))
-        print(filename)
-
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Read data from files
-bitcoin_prices_df = pd.read_csv(join(dirname, "fase1_coin_Bitcoin.csv"))
-bitcoin_news_df = pd.read_csv(join(dirname, "fase1_Bitcoin.csv"))
-crypto_news_df = pd.read_csv(join(dirname, "fase1_cryptonews.csv"))
+bitcoin_prices_df = pd.read_csv("src/fase1_coin_Bitcoin.csv")
+bitcoin_news_df = pd.read_csv("src/fase1_Bitcoin.csv")
+crypto_news_df = pd.read_csv("src/fase1_cryptonews.csv")
+
 
 print(bitcoin_news_df.head(10))
 print(bitcoin_prices_df.head(10))
